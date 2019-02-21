@@ -10,7 +10,9 @@ const todos = [{
    text: 'First test todo'
 }, {
    _id: new ObjectID(),
-   text: 'Second test todo'
+   text: 'Second test todo',
+   completed: true,
+   completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -81,7 +83,6 @@ describe('GET /todos/:id', () => {
          .expect(200)
          .expect((res) => {
             expect(res.body.todo3.text).toBe(todos[0].text);
-            console.log('get response');
          })
          .end(done);
    });
@@ -109,11 +110,10 @@ describe('DELETE /todos/:id', () => {
       var hexID = todos[0]._id.toHexString();
 
       request(app)
-         .delete(`/todos/${todos[0]._id.toHexString()}`)
+         .delete(`/todos/${hexID}`)
          .expect(200)
          .expect((res) => {
             expect(res.body._id).toBe(hexID);
-            console.log('it worked!');
          })
          .end((err, res) => {
             if (err) {
@@ -141,5 +141,47 @@ describe('DELETE /todos/:id', () => {
          .delete(`/todos/123`)
          .expect(404)
          .end(done);
+   });
+});
+
+describe('PATCH /todos/:id', () => {
+   it('should update the todo', (done) => {
+      // grab id of the first item
+      var text = 'This should be the new text';
+
+      request(app)
+         .patch(`/todos/${todos[0]._id.toHexString()}`)
+         .send({ text: text, completed: true })
+         .expect(200)
+         .expect((res) => {
+            expect(res.body.todo.text).toBe(text);
+            expect(res.body.todo.completed).toBe(true);
+            expect(res.body.todo.completedAt).toBeA('number');
+         })
+         .end(done);
+   });
+   //make patch request with id inside, use send to send some data and request body
+   // update text, set completed true
+   // 200
+   // text is changed, completed is true, completedAT is a number .toBeA
+
+   it('should clear completedAt when todo is not completed', (done) => {
+      var text = 'This is the second new text?';
+
+      request(app)
+         .patch(`/todos/${todos[1]._id.toHexString()}`)
+         .send({text: text, completed: false})
+         .expect(200)
+         .expect( (res) => {
+            expect(res.body.todo.text).toBe(text);
+            expect(res.body.todo.completed).toBe(false);
+            expect(res.body.todo.completedAt).toNotExist();
+         })
+         .end(done);
+      // grab id of the second item
+      // update text, set completed to false
+      // 200
+      // text is changed(response body), completed is false, completedAt is null .toNotExist
+
    });
 });
