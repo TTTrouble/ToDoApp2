@@ -1,10 +1,10 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var {ObjectID} = require('mongodb');
+var ObjectID = require('mongodb').ObjectID;
 
-var { mongoose } = require('./db/mongoose');
-var { user } = require('./models/user');
-var { Todo } = require('./models/todo');
+var mongoose = require('./db/mongoose').mongoose;
+var user = require('./models/user').user;
+var Todo = require('./models/todo').Todo;
 
 var app = express();
 
@@ -39,11 +39,11 @@ app.get('/todos/:id', (req,res) => {
         return res.status(404).send();
     }
 
-    Todo.findById(id).then((todo2) => {
-        if(!todo2) {
+    Todo.findById(id).then((todo3) => {
+        if(!todo3) {
             return res.status(404).send();
         }
-        res.send({todo2});
+        res.send({todo3});
     }).catch((e) => {
         res.status(400).send();
     });
@@ -56,7 +56,7 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
 
-    Todo.findByIdAndDelete(id).then(todo2 => {
+    Todo.findByIdAndDelete(id).then( (todo2) => {
         if(!todo2) {
             return res.status(404).send();
         }

@@ -1,24 +1,28 @@
 {
-  "name": "mongo",
+  "name": "node-todo-api",
   "version": "1.0.0",
   "description": "",
-  "main": "mongo-connect.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha server/**/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'"
   },
   "engines": {
-    "node": "8.15.0"
+    "node": "6.2.2"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "express": "^4.16.4",
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
     "mongodb": "^3.1.13",
-    "mongoose": "^5.4.13"
+    "mongoose": "^5.4.14"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "expect": "^1.20.2",
+    "mocha": "^3.0.2",
+    "nodemon": "^1.10.2",
+    "supertest": "^2.0.0"
   }
 }
