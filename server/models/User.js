@@ -87,7 +87,7 @@ UserSchema.statics.findByToken = function(token) {
 
 UserSchema.statics.findByCredentials = function(email, password) {
   var User = this;
-  console.log(email, password);
+  console.log(email, password); 
   return User.findOne({ email }).then((user) => {
     if (!user) {
       console.log("there is no user");
