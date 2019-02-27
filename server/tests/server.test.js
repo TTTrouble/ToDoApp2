@@ -3,23 +3,12 @@ const request = require('supertest');
 const ObjectID = require('mongodb').ObjectID;
 
 const app = require('./../server').app;
-const Todo = require('./../models/todo').Todo;
+const Todo = require('./../models/Todo').Todo;
+const { User } = require('./../models/User');
+const { todos, populateTodos, users, populateUsers } = require('./seed/seed');
 
-const todos = [{
-   _id: new ObjectID(),
-   text: 'First test todo'
-}, {
-   _id: new ObjectID(),
-   text: 'Second test todo',
-   completed: true,
-   completedAt: 333
-}];
-
-beforeEach((done) => {
-   Todo.deleteMany({}).then(() => {
-      return Todo.insertMany(todos);
-   }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
    it('should create a new todo', (done) => {
@@ -170,9 +159,9 @@ describe('PATCH /todos/:id', () => {
 
       request(app)
          .patch(`/todos/${todos[1]._id.toHexString()}`)
-         .send({text: text, completed: false})
+         .send({ text: text, completed: false })
          .expect(200)
-         .expect( (res) => {
+         .expect((res) => {
             expect(res.body.todo.text).toBe(text);
             expect(res.body.todo.completed).toBe(false);
             expect(res.body.todo.completedAt).toNotExist();
@@ -185,3 +174,75 @@ describe('PATCH /todos/:id', () => {
 
    });
 });
+
+describe('GET /users/me', () => {
+   it('should return user if authenticated', (done) => {
+      request(app) //using supertest
+         .get('/users/me')
+         .set('x-auth', users[0].tokens[0].token)
+         .expect(200)
+         .expect((res) => {
+            expect(res.body._id).toBe(users[0]._id.toString());
+            expect(res.body.email).toBe(users[0].email);
+         })
+         .end(done); //think this combines .end from supertest and done from mocha
+   });
+   it('should return 401 if not authenticated', (done) => {
+      request(app) //using supertest
+         .get('/users/me')
+         .expect(401)
+         .expect((res) => {
+            expect(res.body).toEqual({});
+         })
+         .end(done);
+   });
+});
+
+describe('POST /register', () => {
+   it('should create a user', (done) => {
+      var email = 'example@example.com';
+      var password = '123mbc';
+
+      request(app)
+         .post('/register')
+         .send({ email, password })
+         .expect(200)
+         .expect((res) => {
+            expect(res.headers['x-auth']).toExist();
+            expect(res.body._id).toExist();
+            expect(res.body.email).toBe(email);
+         })
+         .end(err => {
+            if (err) {
+               return done(err);
+            }
+
+            User.findOne({ email }).then((user) => {
+               expect(user).toExist();
+               expect(user.password).toNotBe(password);
+               done();
+            });
+         });
+   });
+
+   it('should return validation errors if request invalid', (done) => {
+      var email = 'dsamds';
+      var password = 'dsad';
+      request(app)
+         .post('/register')
+         .send({ email, password })
+         .expect(400)
+         .end(done);
+
+   });
+
+   it('should not create user if email in use', (done) => {
+      var password = 'dsdsadasdsd';
+
+      request(app)
+      .post('/register')
+      .send({email: users[0].email, password})
+      .expect(400)
+      .end(done);
+   });
+})
