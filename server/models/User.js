@@ -85,6 +85,31 @@ UserSchema.statics.findByToken = function(token) {
   });
 };
 
+UserSchema.statics.findByCredentials = function(email, password) {
+  var User = this;
+  console.log(email, password);
+  return User.findOne({ email }).then((user) => {
+    if (!user) {
+      console.log("there is no user");
+      return Promise.reject();
+
+    }
+    //wraps bcrypt in a Promise by returning a new Promise
+    return new Promise((resolve, reject) => {
+      //use bcrypt.compare to compare pasword and user.password
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user);
+        }
+        else {
+          reject();
+          console.log(err);
+        }
+      });
+    });
+  });
+};
+
 UserSchema.pre('save', function(next) {
   var user = this;
   //makes sure that the password has been modified before hashing it. Otherwise you risk rehashing a hashed password
